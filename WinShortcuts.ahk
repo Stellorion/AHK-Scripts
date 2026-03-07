@@ -21,9 +21,8 @@ loop 4 {
 AllShortcuts := Map()
 
 AllShortcuts["Windows"] := [
-    ["Open Task Manager", "Ctrl + Shift + Esc"],
     ["Show/Hide Desktop", "Win + D"],
-    ["Lock PC", "Win + L"],
+    ["Always On Top", "Win + Backtick"],
     ["File Explorer", "Win + E"],
     ["Open Settings", "Win + I"],
     ["Open Action Center", "Win + A"],
@@ -32,7 +31,8 @@ AllShortcuts["Windows"] := [
     ["New Tab", "Ctrl + T/N"],
     ["Close Tab", "Ctrl + W"],
     ["Open Calculator", "Ctrl + CapsLock"],
-    ["Alt+Tab Left/Right", "CapsLock + Q/E"]
+    ["Alt+Tab Left/Right", "CapsLock + Q/E"],
+    ["Start/Pause Media", "CapsLock + W"],
 ]
 
 AllShortcuts["Discord"] := [
@@ -237,6 +237,18 @@ CapsLock & e::
     Send "{Right}"
     Sleep 50
     Send "!{Tab}"
+}
+
+; -- Start/Pause --
+CapsLock & w::
+{
+    Send "{Media_Play_Pause}"
+}
+
+; -- Always On Top --
+#`::
+{
+    WinSetAlwaysOnTop -1, "A"
 }
 
 ; -- Switch List --
