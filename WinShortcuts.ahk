@@ -23,7 +23,7 @@ AllShortcuts := Map()
 AllShortcuts["Windows"] := [
     ["Show/Hide Desktop", "Win + D"],
     ["Always On Top", "Win + Backtick"],
-    ["File Explorer", "Win + E"],
+    ["Close Program", "Win + W"],
     ["Open Settings", "Win + I"],
     ["Open Action Center", "Win + A"],
     ["Interact With Taskbar", "Win + Num"],
@@ -44,7 +44,7 @@ AllShortcuts["Discord"] := [
     ["Quick Switcher", "Ctrl + Q"],
     ["Go To Active Call", "Ctrl + Alt + A"],
     ["Answer Call", "Ctrl + E"],
-    ["Exit Call", "Ctrl + D"]
+    ["Exit Call", "Ctrl + D"],
 ]
 
 AllShortcuts["Timers"] := [
@@ -56,13 +56,16 @@ AllShortcuts["Timers"] := [
     ["Countdown 1-4 Loop Toggle", "Ctrl + 1-4"],
 ]
 
-AllShortcuts["Game B"] := [
-    ["Crouch", "C"],
-    ["Prone", "Z"],
-    ["Reload", "R"],
-    ["Grenade", "G"],
-    ["Map", "M"],
-    ["Inventory", "I"]
+AllShortcuts["Explorer"] := [
+    ["Games", "CapsLock + 1"],
+    ["Software", "CapsLock + 2"],
+    ["Desktop", "CapsLock + 3"],
+    ["Downloads", "CapsLock + 4"],
+    ["My PC", "CapsLock + 5"],
+    ["Jump to Parent", "CapsLock + Tab"],
+    ["Copy File Path", "Ctrl + Alt + C"],
+    ["Create Shortcut", "Alt + Left Click"],
+    ["Create Copy", "Ctrl + Left Click"],
 ]
 ; ===============================
 
@@ -82,12 +85,12 @@ MyGui.SetFont("s12 bold")
 Btn1 := MyGui.Add("Button", "Background0B090A x10 w100 -E0x200", "Windows")
 Btn2 := MyGui.Add("Button", "Background0B090A x+10 w100", "Discord")
 Btn3 := MyGui.Add("Button", "Background0B090A x+10 w100 -E0x200", "Timers")
-Btn4 := MyGui.Add("Button", "Background0B090A x+10 w100", "Game B")
+Btn4 := MyGui.Add("Button", "Background0B090A x+10 w100", "Explorer")
 
 Btn1.OnEvent("Click", (*) => SwitchList("Windows"))
 Btn2.OnEvent("Click", (*) => SwitchList("Discord"))
 Btn3.OnEvent("Click", (*) => SwitchList("Timers"))
-Btn4.OnEvent("Click", (*) => SwitchList("Game B"))
+Btn4.OnEvent("Click", (*) => SwitchList("Explorer"))
 
 ; -- List View --
 MyGui.SetFont("s14 norm cF5F3F4", "Arial")
@@ -219,6 +222,12 @@ SwitchList(ListName) {
     Run "calc.exe"
 }
 
+; -- Open Task Manager --
+CapsLock & Esc::
+{
+    Send "^+{Escape}"
+}
+
 ; -- Jump Backward --
 CapsLock & q::
 {
@@ -245,6 +254,12 @@ CapsLock & w::
     Send "{Media_Play_Pause}"
 }
 
+; -- Close Active Program --
+#w::
+{
+    Send "!{f4}"
+}
+
 ; -- Always On Top --
 #`::
 {
@@ -256,7 +271,7 @@ CapsLock & w::
 1:: SwitchList("Windows")
 2:: SwitchList("Discord")
 3:: SwitchList("Timers")
-4:: SwitchList("Game B")
+4:: SwitchList("Explorer")
 Escape:: MyGui.Hide()
 #HotIf
 ; -------------------------------
@@ -299,7 +314,7 @@ CapsLock & F1::
 ^3:: ToggleCDLoop(3)
 ^4:: ToggleCDLoop(4)
 
-#HotIf ;
+#HotIf
 ; -------------------------------
 ; ===============================
 
@@ -309,4 +324,5 @@ CapsLock & F1::
 #Include schedule1.ahk
 #Include Discord.ahk
 #Include Timer.ahk
+#Include FileExplorer.ahk
 ; ===============================
