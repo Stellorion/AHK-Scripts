@@ -20,11 +20,18 @@ loop 4 {
 ; -------------------------------
 AllShortcuts := Map()
 
+AllShortcuts["Main List"] := [
+    ["Windows", "1"],
+    ["Discord", "2"],
+    ["Timers", "3"],
+    ["File Explorer", "4"],
+    ["DrawPen", "5"],
+]
+
 AllShortcuts["Windows"] := [
     ["Show/Hide Desktop", "Win + D"],
     ["Always On Top", "Win + Backtick"],
     ["Close Program", "Win + W"],
-    ["Open Settings", "Win + I"],
     ["Open Action Center", "Win + A"],
     ["Interact With Taskbar", "Win + Num"],
     ["Move Between Tabs", "Ctrl + Num"],
@@ -56,7 +63,7 @@ AllShortcuts["Timers"] := [
     ["Countdown 1-4 Loop Toggle", "Ctrl + 1-4"],
 ]
 
-AllShortcuts["Explorer"] := [
+AllShortcuts["File Explorer"] := [
     ["Games", "CapsLock + 1"],
     ["Software", "CapsLock + 2"],
     ["Desktop", "CapsLock + 3"],
@@ -66,6 +73,22 @@ AllShortcuts["Explorer"] := [
     ["Copy File Path", "Ctrl + Alt + C"],
     ["Create Shortcut", "Alt + Left Click"],
     ["Create Copy", "Ctrl + Left Click"],
+]
+
+AllShortcuts["DrawPen"] := [
+    ["Open/Close DrawPen", "CapsLock + R"],
+    ["Activate Pen", "1"],
+    ["Activate/Switch Shapes", "2"],
+    ["Activate Text", "3"],
+    ["Activate Highlighter", "4"],
+    ["Activate Laser", "5"],
+    ["Activate Eraser", "6"],
+    ["Switch Color", "7"],
+    ["Switch Thickness", "8"],
+    ["Show/Hide ToolBar", "CTRL + T"],
+    ["Show/Hide Whiteboard", "CTRL + E"],
+    ["Clear Desk", "CTRL + K"],
+    ["Settings Page", "CTRL + ,"],
 ]
 ; ===============================
 
@@ -78,28 +101,29 @@ MyGui.SetFont("s10", "Arial")
 
 ; -- Header --
 MyGui.SetFont("s18 Bold cF5F3F4", "Arial")
-MyGui.Add("Text", "Center w430 cF5F3F4 vHeaderText", "Windows Shortcuts")
-
-; -- Nav Buttons --
-MyGui.SetFont("s12 bold")
-Btn1 := MyGui.Add("Button", "Background0B090A x10 w100 -E0x200", "Windows")
-Btn2 := MyGui.Add("Button", "Background0B090A x+10 w100", "Discord")
-Btn3 := MyGui.Add("Button", "Background0B090A x+10 w100 -E0x200", "Timers")
-Btn4 := MyGui.Add("Button", "Background0B090A x+10 w100", "Explorer")
-
-Btn1.OnEvent("Click", (*) => SwitchList("Windows"))
-Btn2.OnEvent("Click", (*) => SwitchList("Discord"))
-Btn3.OnEvent("Click", (*) => SwitchList("Timers"))
-Btn4.OnEvent("Click", (*) => SwitchList("Explorer"))
+MyGui.Add("Text", "x10 w430 +Center cF5F3F4 vHeaderText")
 
 ; -- List View --
 MyGui.SetFont("s14 norm cF5F3F4", "Arial")
-LV := MyGui.Add("ListView", "x10 y+10 w430 r12 -E0x200 -Multi Background0B090A cF5F3F4", ["Action", "Shortcut"])
+LV := MyGui.Add("ListView", "x10 y+10 w430 r13 -E0x200 -Multi Background0B090A cF5F3F4", ["Action", "Shortcut"])
 LV.ModifyCol(1, 270)
 LV.ModifyCol(2, "AutoHdr")
 
+SwitchList(ListName) {
+    ; Update Header Text
+    MyGui["HeaderText"].Value := ListName . " Shortcuts"
+
+    ; Clear and Repopulate ListView
+    LV.Delete()
+    if AllShortcuts.Has(ListName) {
+        for item in AllShortcuts[ListName] {
+            LV.Add(, item*)
+        }
+    }
+}
+
 ; Load default list
-SwitchList("Windows")
+SwitchList("Main List")
 ; ===============================
 
 
@@ -195,19 +219,6 @@ SetCapsLockState "AlwaysOff"
 
 ; WinShortcuts
 ; -------------------------------
-SwitchList(ListName) {
-    ; Update Header Text
-    MyGui["HeaderText"].Value := ListName . " Shortcuts"
-
-    ; Clear and Repopulate ListView
-    LV.Delete()
-    if AllShortcuts.Has(ListName) {
-        for item in AllShortcuts[ListName] {
-            LV.Add(, item*)
-        }
-    }
-}
-
 ; -- Show/Hide Window --
 #CapsLock::
 {
@@ -266,12 +277,25 @@ CapsLock & w::
     WinSetAlwaysOnTop -1, "A"
 }
 
+; -- Open/Close DrawPen --
+CapsLock & r::
+{
+    if WinActive("ahk_exe DrawPen.exe") {
+        MouseClick("Left", 10, 10)
+    }
+    else {
+        Send "^+a"
+    }
+}
+
 ; -- Switch List --
 #HotIf WinActive("ahk_id " MyGui.Hwnd)
+`:: SwitchList("Main List")
 1:: SwitchList("Windows")
 2:: SwitchList("Discord")
 3:: SwitchList("Timers")
-4:: SwitchList("Explorer")
+4:: SwitchList("File Explorer")
+5:: SwitchList("DrawPen")
 Escape:: MyGui.Hide()
 #HotIf
 ; -------------------------------
