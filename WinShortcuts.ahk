@@ -21,11 +21,11 @@ loop 4 {
 AllShortcuts := Map()
 
 AllShortcuts["Main List"] := [
+    ["Main List", "``"],
     ["Windows", "1"],
     ["Discord", "2"],
     ["Timers", "3"],
     ["File Explorer", "4"],
-    ["DrawPen", "5"],
 ]
 
 AllShortcuts["Windows"] := [
@@ -73,22 +73,6 @@ AllShortcuts["File Explorer"] := [
     ["Copy File Path", "Ctrl + Alt + C"],
     ["Create Shortcut", "Alt + Left Click"],
     ["Create Copy", "Ctrl + Left Click"],
-]
-
-AllShortcuts["DrawPen"] := [
-    ["Open/Close DrawPen", "CapsLock + R"],
-    ["Activate Pen", "1"],
-    ["Activate/Switch Shapes", "2"],
-    ["Activate Text", "3"],
-    ["Activate Highlighter", "4"],
-    ["Activate Laser", "5"],
-    ["Activate Eraser", "6"],
-    ["Switch Color", "7"],
-    ["Switch Thickness", "8"],
-    ["Show/Hide ToolBar", "CTRL + T"],
-    ["Show/Hide Whiteboard", "CTRL + E"],
-    ["Clear Desk", "CTRL + K"],
-    ["Settings Page", "CTRL + ,"],
 ]
 ; ===============================
 
@@ -277,17 +261,6 @@ CapsLock & w::
     WinSetAlwaysOnTop -1, "A"
 }
 
-; -- Open/Close DrawPen --
-CapsLock & r::
-{
-    if WinActive("ahk_exe DrawPen.exe") {
-        MouseClick("Left", 10, 10)
-    }
-    else {
-        Send "^+a"
-    }
-}
-
 ; -- Switch List --
 #HotIf WinActive("ahk_id " MyGui.Hwnd)
 `:: SwitchList("Main List")
@@ -295,7 +268,6 @@ CapsLock & r::
 2:: SwitchList("Discord")
 3:: SwitchList("Timers")
 4:: SwitchList("File Explorer")
-5:: SwitchList("DrawPen")
 Escape:: MyGui.Hide()
 #HotIf
 ; -------------------------------
