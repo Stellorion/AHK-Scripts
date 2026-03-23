@@ -261,6 +261,16 @@ CapsLock & w::
     WinSetAlwaysOnTop -1, "A"
 }
 
+; -- Everything Search --
+CapsLock & s::
+{
+    if WinExist("ahk_exe Everything.exe")
+        WinActivate
+    else
+        Run "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Everything.lnk"
+    return
+}
+
 ; -- Switch List --
 #HotIf WinActive("ahk_id " MyGui.Hwnd)
 `:: SwitchList("Main List")
