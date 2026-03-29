@@ -39,7 +39,8 @@ AllShortcuts["Windows"] := [
     ["Close Tab", "Ctrl + W"],
     ["Open Calculator", "Ctrl + CapsLock"],
     ["Alt+Tab Left/Right", "CapsLock + Q/E"],
-    ["Start/Pause Media", "CapsLock + W"],
+    ["Media Start/Pause ", "CapsLock + W"],
+    ["Media Prev/Next", "CapsLock + A/D"],
 ]
 
 AllShortcuts["Discord"] := [
@@ -243,10 +244,22 @@ CapsLock & e::
     Send "!{Tab}"
 }
 
-; -- Start/Pause --
+; -- Media Start/Pause --
 CapsLock & w::
 {
     Send "{Media_Play_Pause}"
+}
+
+; -- Media Next --
+CapsLock & d::
+{
+    Send "{Media_Next}"
+}
+
+; -- Media Previous --
+CapsLock & a::
+{
+    Send "{Media_Prev}"
 }
 
 ; -- Close Active Program --
