@@ -38,7 +38,7 @@ AllShortcuts["Windows"] := [
     ["New Tab", "Ctrl + T/N"],
     ["Close Tab", "Ctrl + W"],
     ["Open Calculator", "Ctrl + CapsLock"],
-    ["Alt+Tab Left/Right", "CapsLock + Q/E"],
+    ["Media +5s/-5s", "CapsLock + Q/E"],
     ["Media Start/Pause ", "CapsLock + W"],
     ["Media Prev/Next", "CapsLock + A/D"],
 ]
@@ -224,26 +224,6 @@ CapsLock & Esc::
     Send "^+{Escape}"
 }
 
-; -- Jump Backward --
-CapsLock & q::
-{
-    Send "!{Tab}"
-    Sleep 200
-    Send "{Left}"
-    Sleep 50
-    Send "!{Tab}"
-}
-
-; -- Jump Forward --
-CapsLock & e::
-{
-    Send "!{Tab}"
-    Sleep 200
-    Send "{Right}"
-    Sleep 50
-    Send "!{Tab}"
-}
-
 ; -- Media Start/Pause --
 CapsLock & w::
 {
@@ -260,6 +240,26 @@ CapsLock & d::
 CapsLock & a::
 {
     Send "{Media_Prev}"
+}
+
+; -- Media Move Backward 5s --
+CapsLock & q:: {
+    try {
+        session := Media.GetCurrentSession()
+        session.ChangePlaybackPosition(Max(0, session.Position - 5))
+    } catch {
+        ; Do nothing
+    }
+}
+
+; -- Move Forward 5s --
+CapsLock & e:: {
+    try {
+        session := Media.GetCurrentSession()
+        session.ChangePlaybackPosition(Min(session.EndTime, session.Position + 5))
+    } catch {
+        ; Do nothing
+    }
 }
 
 ; -- Close Active Program --
@@ -338,10 +338,15 @@ CapsLock & F1::
 ; ===============================
 
 
-; Includes
+; Includes/Runs
 ; ===============================
-#Include schedule1.ahk
 #Include Discord.ahk
 #Include Timer.ahk
 #Include FileExplorer.ahk
+
+; -------- Libraries ------------
+; Source: https://github.com/Descolada/AHK-v2-libraries
+; Copyright (c) 2023 Descolada
+; Licensed under MIT License
+#Include lib/MediaControl.ahk
 ; ===============================
