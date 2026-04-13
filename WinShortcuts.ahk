@@ -16,6 +16,16 @@ loop 4 {
 }
 ; -------------------------------
 
+; Automator Vars
+; -------------------------------
+IsAutomating := false
+IsRecording := false
+IsPlaying := false
+MacroData := []
+RecordStartTime := 0
+MacroIndex := 0
+; -------------------------------
+
 ; List of Shortcuts
 ; -------------------------------
 AllShortcuts := Map()
@@ -25,7 +35,8 @@ AllShortcuts["Main List"] := [
     ["Windows", "1"],
     ["Discord", "2"],
     ["Timers", "3"],
-    ["File Explorer", "4"],
+    ["AutoClicker", "4"],
+    ["File Explorer", "5"],
 ]
 
 AllShortcuts["Windows"] := [
@@ -56,6 +67,15 @@ AllShortcuts["Discord"] := [
 ]
 
 AllShortcuts["Timers"] := [
+    ["Toggle Visibility", "CapsLock + F1"],
+    ["Stopwatch 1-2 Start/Stop", "Alt + 1-2"],
+    ["Stopwatch 1-2 Reset", "Shift + Alt + 1-2"],
+    ["Countdown 1-4 Start/Stop", "Alt + 3-6"],
+    ["Countdown 1-4 Reset", "Ctrl + Alt + 3-6"],
+    ["Countdown 1-4 Loop Toggle", "Ctrl + 1-4"],
+]
+
+AllShortcuts["AutoClicker"] := [
     ["Toggle Visibility", "CapsLock + F1"],
     ["Stopwatch 1-2 Start/Stop", "Alt + 1-2"],
     ["Stopwatch 1-2 Reset", "Shift + Alt + 1-2"],
@@ -191,6 +211,78 @@ loop 4 {
 ; ===============================
 
 
+; Automator GUI
+; ===============================
+AutomatorGui := Gui(, "AHK Automator")
+AutomatorGui.BackColor := "0B090A"
+
+; Auto Clicker GUI
+; -------------------------------
+AutomatorGui.SetFont("s18 Bold cF5F3F4", "Segoe UI")
+AutomatorGui.Add("Text", "x0 y15 Center w420", "AUTO CLICKER")
+AutomatorGui.Add("Text", "x0 h0 w422 0x10") 
+
+; -- Key Selection --
+AutomatorGui.SetFont("s12 Bold cWhite")
+AutomatorGui.Add("Text", "x20 y+25 section", "Key/Mouse:")
+EditAutoKey := AutomatorGui.Add("Edit", "x+10 w50 h26 cBlack", "m1")
+
+; -- Interval (ms) --
+AutomatorGui.Add("Text", "x+55 yp", "Interval (ms):") 
+EditInterval := AutomatorGui.Add("Edit", "x+10 yp w60 h26 cBlack", "100")
+
+; -- Location Selection --
+RadioCur  := AutomatorGui.Add("Radio", "xs y+15 Checked", "Current location")
+RadioPick := AutomatorGui.Add("Radio", "x+55 w20 h20", "") 
+AutomatorGui.SetFont("s11 Bold cWhite")
+BtnPick   := AutomatorGui.Add("Button", "x+2 yp-4 h28 w110 Background0B090A cBlack", "Pick location")
+BtnPick.OnEvent("Click", GetLocation)
+
+; -- Mode Selection (Tap/Hold) --
+AutomatorGui.SetFont("s12 Bold cWhite")
+RadioTap  := AutomatorGui.Add("Radio", "x20 Checked", "Tap")
+RadioHold := AutomatorGui.Add("Radio", "x+10", "Hold")
+
+; -- X & Y Coordinations --
+AutomatorGui.Add("Text", "x+80 yp+4", "X:")
+EditX     := AutomatorGui.Add("Edit", "x+5 yp-4 w40 h26 cBlack", "0")
+AutomatorGui.Add("Text", "x+10 yp+4", "Y:")
+EditY     := AutomatorGui.Add("Edit", "x+5 yp-4 w40 h26 cBlack", "0")
+AutomatorGui.Add("Text", "x0 y+25 h0 w422 0x10") 
+
+; Macro Recorder GUI
+; -------------------------------
+AutomatorGui.SetFont("s18 Bold")
+AutomatorGui.Add("Text", "x0 y+15 Center w420 cWhite", "MACRO RECORDER")
+AutomatorGui.Add("Text", "x0 h0 w422 0x10") 
+
+; -- Repeat Logic --
+AutomatorGui.SetFont("s12 Bold cWhite")
+CheckRepeat := AutomatorGui.Add("Checkbox", "x20 yp+20", "Repeat")
+AutomatorGui.Add("Text", "x+170", "Interval:")
+EditMacroInterval := AutomatorGui.Add("Edit", "x+5 yp-3 w60 h26 cBlack", "1000")
+
+; -- Reocrd Buttons --
+AutomatorGui.SetFont("s10 cBlack")
+BtnRecord  := AutomatorGui.Add("Button", "x20 w120 h30", "Record")
+BtnStopRec := AutomatorGui.Add("Button", "x+10 w120 h30", "Stop")
+BtnPlay    := AutomatorGui.Add("Button", "x+10 w120 h30", "Play")
+
+; -- Record List -- 
+AutomatorGui.SetFont("s12 Bold cWhite")
+AutomatorGui.Add("Text", "x20 y+15", "Live Sequence:")
+AutomatorGui.SetFont("s10 Bold cWhite")
+MacroList  := AutomatorGui.Add("ListView", "x20 y+5 r8 w380 cBlack", ["Key", "Delay (ms)"])
+MacroList.ModifyCol(1, 100)
+MacroList.ModifyCol(2, 259)
+
+; -- Export/Import --
+BtnExport  := AutomatorGui.Add("Button", "x20 y+10 w185 h35 cBlack", "Export (CSV)")
+BtnImport  := AutomatorGui.Add("Button", "x+10 w185 h35 cBlack", "Import (CSV)")
+
+; ===============================
+
+
 ; ===============================
 ; Update GUI every 50ms
 SetTimer UpdateTimers, 50
@@ -204,13 +296,24 @@ SetCapsLockState "AlwaysOff"
 
 ; WinShortcuts
 ; -------------------------------
-; -- Show/Hide Window --
+; -- Show/Hide Shortcuts --
 #CapsLock::
 {
     static visible := false
     visible ? MyGui.Hide() : MyGui.Show("w450 Center")
     visible := !visible
 }
+
+; -- Switch List --
+#HotIf WinActive("ahk_id " MyGui.Hwnd)
+`:: SwitchList("Main List")
+1:: SwitchList("Windows")
+2:: SwitchList("Discord")
+3:: SwitchList("Timers")
+4:: SwitchList("AutoClicker")
+5:: SwitchList("File Explorer")
+Escape:: MyGui.Hide()
+#HotIf
 
 ; -- Open Calculator --
 ^CapsLock::
@@ -224,6 +327,31 @@ CapsLock & Esc::
     Send "^+{Escape}"
 }
 
+; -- Close Active Program --
+#w::
+{
+    Send "!{f4}"
+}
+
+; -- Always On Top --
+#`::
+{
+    WinSetAlwaysOnTop -1, "A"
+}
+
+; -- Everything Search --
+CapsLock & s::
+{
+    if WinExist("ahk_exe Everything.exe")
+        WinActivate
+    else
+        Run "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Everything.lnk"
+    return
+}
+; -------------------------------
+
+; Media
+; -------------------------------
 ; -- Media Start/Pause --
 CapsLock & w::
 {
@@ -261,38 +389,6 @@ CapsLock & e:: {
         ; Do nothing
     }
 }
-
-; -- Close Active Program --
-#w::
-{
-    Send "!{f4}"
-}
-
-; -- Always On Top --
-#`::
-{
-    WinSetAlwaysOnTop -1, "A"
-}
-
-; -- Everything Search --
-CapsLock & s::
-{
-    if WinExist("ahk_exe Everything.exe")
-        WinActivate
-    else
-        Run "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Everything.lnk"
-    return
-}
-
-; -- Switch List --
-#HotIf WinActive("ahk_id " MyGui.Hwnd)
-`:: SwitchList("Main List")
-1:: SwitchList("Windows")
-2:: SwitchList("Discord")
-3:: SwitchList("Timers")
-4:: SwitchList("File Explorer")
-Escape:: MyGui.Hide()
-#HotIf
 ; -------------------------------
 
 ; Timer Shortcuts
@@ -335,6 +431,66 @@ CapsLock & F1::
 
 #HotIf
 ; -------------------------------
+
+; Automator Shortcuts
+; -------------------------------
+; -- Toggle Visibility --
+CapsLock & F2::
+{
+    static visible := false
+    visible ? AutomatorGui.Hide() : AutomatorGui.Show("w420")
+    visible := !visible
+}
+
+CapsLock & z:: {
+    global IsAutomating
+    if (IsAutomating) {
+        IsAutomating := false
+        return
+    }
+
+    IsAutomating := true
+    RawKey := EditAutoKey.Value
+    IsMouse := (RawKey ~= "i)^m[1-3]$")
+    TargetKey := (RawKey = "m1") ? "LButton" : (RawKey = "m2") ? "RButton" : (RawKey = "m3") ? "MButton" : RawKey
+    SoundBeep 750, 100 
+
+    while IsAutomating {
+        ; Allow other script threads (Timers/Shortcuts) to breathe
+        Sleep -1 
+
+        if RadioHold.Value {
+            if RadioPick.Value
+                MouseMove(EditX.Value, EditY.Value)
+            Send("{" TargetKey " down}")
+            while IsAutomating
+                Sleep 10
+            Send("{" TargetKey " up}")
+        } else {
+            if IsMouse {
+                if RadioPick.Value
+                    Click(EditX.Value, EditY.Value, SubStr(TargetKey, 1, 1))
+                else
+                    Click(SubStr(TargetKey, 1, 1))
+            } else {
+                if RadioPick.Value
+                    MouseMove(EditX.Value, EditY.Value)
+                Send("{" TargetKey "}")
+            }
+            
+            ; Responsive wait
+            EndTick := A_TickCount + EditInterval.Value
+            while (A_TickCount < EndTick && IsAutomating) {
+                Sleep 10
+            }
+        }
+    }
+}
+
+CapsLock & x:: StopActions()
+CapsLock & c:: StartRecording()
+CapsLock & v:: PlayMacro()
+; -------------------------------
 ; ===============================
 
 
@@ -343,7 +499,7 @@ CapsLock & F1::
 #Include Discord.ahk
 #Include Timer.ahk
 #Include FileExplorer.ahk
-
+#Include Automator.ahk
 ; -------- Libraries ------------
 ; Source: https://github.com/Descolada/AHK-v2-libraries
 ; Copyright (c) 2023 Descolada
