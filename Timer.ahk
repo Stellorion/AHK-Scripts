@@ -11,7 +11,8 @@ ToggleSW(Index) {
         SW[Index].Start := A_TickCount
         SW[Index].Running := true
         BtnObj.Text := "Stop"
-    } else {
+    } 
+    else {
         ; STOP/PAUSE logic
         SW[Index].Time += A_TickCount - SW[Index].Start
         SW[Index].Running := false
@@ -121,7 +122,8 @@ UpdateTimers() {
                     SoundBeep 400, 100 ; Beep on loop
 
                     ; Check Finished
-                } else {
+                } 
+                else {
                     CD[A_Index].Left := 0
                     CD[A_Index].Running := false
                     CD_Controls[A_Index].Btn.Text := "Start"

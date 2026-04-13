@@ -1,25 +1,79 @@
 ﻿#Requires AutoHotkey v2.0
 
-; --- Event Attachments ---
+; -- Event Attachments --
 BtnExport.OnEvent("Click", ExportMacro)
 BtnImport.OnEvent("Click", ImportMacro)
 BtnRecord.OnEvent("Click", (*) => StartRecording())
 BtnStopRec.OnEvent("Click", (*) => StopActions()) 
 BtnPlay.OnEvent("Click", (*) => PlayMacro())
 
-; --- Logic Functions ---
+; -- Location Selector Logic --
 GetLocation(*) {
     CoordMode "Mouse", "Screen"
     RadioPick.Value := 1 
+    ; Wait for user click
     ToolTip("LEFT CLICK anywhere to pick coordinates...")
     KeyWait "LButton"
     KeyWait "LButton", "D"
+    ; Get click location of user 
     MouseGetPos(&x, &y)
     EditX.Value := x
     EditY.Value := y
     ToolTip()
 }
 
+; -- AutoClicker Logic --
+RunAutoClicker(*) {
+    global IsAutomating
+    if (IsAutomating) {
+        IsAutomating := false
+        return
+    }
+
+    IsAutomating := true
+    RawKey := EditAutoKey.Value
+    ; Check if input is a mouse shorthand (m1, m2, m3)
+    IsMouse := (RawKey ~= "i)^m[1-3]$")
+    TargetKey := (RawKey = "m1") ? "LButton" : (RawKey = "m2") ? "RButton" : (RawKey = "m3") ? "MButton" : RawKey
+    SoundBeep 750, 100 
+
+    while IsAutomating {
+        Sleep -1 ; Prevents the script from freezing the CPU
+
+        if RadioHold.Value {
+            ; Hold mode
+            if RadioPick.Value
+                MouseMove(EditX.Value, EditY.Value)
+
+            Send("{" TargetKey " down}")
+            while IsAutomating
+                Sleep 10
+            Send("{" TargetKey " up}")
+        } 
+        else {
+            ; Tap mode
+            if IsMouse {
+                if RadioPick.Value
+                    Click(EditX.Value, EditY.Value, SubStr(TargetKey, 1, 1))
+                else
+                    Click(SubStr(TargetKey, 1, 1))
+            } 
+            else {
+                if RadioPick.Value
+                    MouseMove(EditX.Value, EditY.Value)
+                Send("{" TargetKey "}")
+            }
+            
+            ; Responsive wait
+            EndTick := A_TickCount + EditInterval.Value
+            while (A_TickCount < EndTick && IsAutomating) {
+                Sleep 10
+            }
+        }
+    }
+}
+
+; -- Macro Playback Logic --
 ProcessMacro() {
     global IsPlaying, MacroIndex, MacroData
     
@@ -32,7 +86,7 @@ ProcessMacro() {
     ; Get the current step
     item := MacroData[MacroIndex]
 
-    ; Perform the action
+    ; Check the recorded if keystroke or mouse click
     if (item.key ~= "i)\{(LButton|RButton|MButton)\}")
         Click(SubStr(item.key, 2, 1))
     else
@@ -46,7 +100,8 @@ ProcessMacro() {
         if (CheckRepeat.Value) {
             MacroIndex := 1 ; Reset to start
             SetTimer(ProcessMacro, Max(1, EditMacroInterval.Value))
-        } else {
+        } 
+        else {
             IsPlaying := false
             SetTimer(ProcessMacro, 0)
         }
@@ -57,6 +112,7 @@ ProcessMacro() {
     SetTimer(ProcessMacro, Max(1, MacroData[MacroIndex].delay))
 }
 
+; Recording Controls
 StartRecording() {
     global IsRecording := true, IsPlaying := false, MacroData := [], RecordStartTime := A_TickCount
     MacroList.Delete()
@@ -65,7 +121,7 @@ StartRecording() {
 
 StopActions(*) {
     global IsRecording := false, IsPlaying := false, IsAutomating := false
-    SetTimer(ProcessMacro, 0)
+    SetTimer(ProcessMacro, 0) ; Kill playback timer
     ToolTip()
     SoundBeep 500, 100 
 }
@@ -82,6 +138,7 @@ PlayMacro() {
     SetTimer(ProcessMacro, 10)
 }
 
+; -- Catches Input Into The Recording List --
 RecordKey(name) {
     if !IsRecording
         return
@@ -92,22 +149,30 @@ RecordKey(name) {
     MacroList.Add(, name, delay)
 }
 
-; -- Recording Hooks --
+; Recording Hooks
 #HotIf IsRecording
+; Mouse
 ~*LButton::RecordKey("LButton")
 ~*RButton::RecordKey("RButton")
 ~*MButton::RecordKey("MButton")
+; Other keys
 ~*Space::RecordKey("Space")
 ~*Enter::RecordKey("Enter")
+~*Tab::RecordKey("Tab")
+~*Backspace::RecordKey("Backspace")
+~*Escape::RecordKey("Escape")
+~*Shift::RecordKey("Shift")
+~*Ctrl::RecordKey("Ctrl")
+~*Alt::RecordKey("Alt")
 #HotIf
 
-; Build the alphanumeric hooks
+; -- Build the alphanumeric hooks --
 Loop 26
     Hotkey("~*" Chr(A_Index + 96), (hk) => RecordKey(SubStr(hk, 3)))
 Loop 10
     Hotkey("~*" (A_Index - 1), (hk) => RecordKey(SubStr(hk, 3)))
 
-; -- File Handling --
+; File Handling
 ExportMacro(*) {
     if !(Path := FileSelect("S16", "macro.csv"))
         return

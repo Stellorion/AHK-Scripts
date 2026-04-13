@@ -37,6 +37,7 @@ AllShortcuts["Main List"] := [
     ["Timers", "3"],
     ["AutoClicker", "4"],
     ["File Explorer", "5"],
+    ["Media Control" "6"],
 ]
 
 AllShortcuts["Windows"] := [
@@ -49,9 +50,7 @@ AllShortcuts["Windows"] := [
     ["New Tab", "Ctrl + T/N"],
     ["Close Tab", "Ctrl + W"],
     ["Open Calculator", "Ctrl + CapsLock"],
-    ["Media +5s/-5s", "CapsLock + Q/E"],
-    ["Media Start/Pause ", "CapsLock + W"],
-    ["Media Prev/Next", "CapsLock + A/D"],
+    ["Open Everything Search", "CapsLock + S"]
 ]
 
 AllShortcuts["Discord"] := [
@@ -76,12 +75,11 @@ AllShortcuts["Timers"] := [
 ]
 
 AllShortcuts["AutoClicker"] := [
-    ["Toggle Visibility", "CapsLock + F1"],
-    ["Stopwatch 1-2 Start/Stop", "Alt + 1-2"],
-    ["Stopwatch 1-2 Reset", "Shift + Alt + 1-2"],
-    ["Countdown 1-4 Start/Stop", "Alt + 3-6"],
-    ["Countdown 1-4 Reset", "Ctrl + Alt + 3-6"],
-    ["Countdown 1-4 Loop Toggle", "Ctrl + 1-4"],
+    ["Toggle Visibility", "CapsLock + F2"],
+    ["Start AutoClicker", "CapsLock + z"],
+    ["Stop AutoClicker & Record", "CapsLock + x"],
+    ["Start Recording", "CapsLock + c"],
+    ["Play Recording", "CapsLock + v"],
 ]
 
 AllShortcuts["File Explorer"] := [
@@ -94,6 +92,14 @@ AllShortcuts["File Explorer"] := [
     ["Copy File Path", "Ctrl + Alt + C"],
     ["Create Shortcut", "Alt + Left Click"],
     ["Create Copy", "Ctrl + Left Click"],
+]
+
+AllShortcuts["Media Control"] := [
+    ["Jump +5s/-5s", "CapsLock + Q/E"],
+    ["Start/Pause", "CapsLock + W"],
+    ["Prev/Next", "CapsLock + A/D"],
+    ["Jump To Start", "CapsLock + T"],
+    ["Jump To End", "CapsLock + R"],
 ]
 ; ===============================
 
@@ -312,6 +318,7 @@ SetCapsLockState "AlwaysOff"
 3:: SwitchList("Timers")
 4:: SwitchList("AutoClicker")
 5:: SwitchList("File Explorer")
+6:: SwitchList("Media Control")
 Escape:: MyGui.Hide()
 #HotIf
 
@@ -352,40 +359,64 @@ CapsLock & s::
 
 ; Media
 ; -------------------------------
-; -- Media Start/Pause --
+; -- Start/Pause --
 CapsLock & w::
 {
     Send "{Media_Play_Pause}"
 }
 
-; -- Media Next --
+; -- Next --
 CapsLock & d::
 {
     Send "{Media_Next}"
 }
 
-; -- Media Previous --
+; -- Previous --
 CapsLock & a::
 {
     Send "{Media_Prev}"
 }
 
-; -- Media Move Backward 5s --
+; -- Jump Backward 5s --
 CapsLock & q:: {
     try {
         session := Media.GetCurrentSession()
         session.ChangePlaybackPosition(Max(0, session.Position - 5))
-    } catch {
+    } 
+    catch {
         ; Do nothing
     }
 }
 
-; -- Move Forward 5s --
+; -- Jump Forward 5s --
 CapsLock & e:: {
     try {
         session := Media.GetCurrentSession()
         session.ChangePlaybackPosition(Min(session.EndTime, session.Position + 5))
-    } catch {
+    } 
+    catch {
+        ; Do nothing
+    }
+}
+
+; -- Jump To Start --
+CapsLock & t:: {
+    try {
+        session := Media.GetCurrentSession()
+        session.ChangePlaybackPosition(session.StartTime)
+    } 
+    catch {
+        ; Do nothing
+    }
+}
+
+; -- Jump To End --
+CapsLock & r:: {
+    try {
+        session := Media.GetCurrentSession()
+        session.ChangePlaybackPosition(session.EndTime)
+    } 
+    catch {
         ; Do nothing
     }
 }
@@ -442,51 +473,7 @@ CapsLock & F2::
     visible := !visible
 }
 
-CapsLock & z:: {
-    global IsAutomating
-    if (IsAutomating) {
-        IsAutomating := false
-        return
-    }
-
-    IsAutomating := true
-    RawKey := EditAutoKey.Value
-    IsMouse := (RawKey ~= "i)^m[1-3]$")
-    TargetKey := (RawKey = "m1") ? "LButton" : (RawKey = "m2") ? "RButton" : (RawKey = "m3") ? "MButton" : RawKey
-    SoundBeep 750, 100 
-
-    while IsAutomating {
-        ; Allow other script threads (Timers/Shortcuts) to breathe
-        Sleep -1 
-
-        if RadioHold.Value {
-            if RadioPick.Value
-                MouseMove(EditX.Value, EditY.Value)
-            Send("{" TargetKey " down}")
-            while IsAutomating
-                Sleep 10
-            Send("{" TargetKey " up}")
-        } else {
-            if IsMouse {
-                if RadioPick.Value
-                    Click(EditX.Value, EditY.Value, SubStr(TargetKey, 1, 1))
-                else
-                    Click(SubStr(TargetKey, 1, 1))
-            } else {
-                if RadioPick.Value
-                    MouseMove(EditX.Value, EditY.Value)
-                Send("{" TargetKey "}")
-            }
-            
-            ; Responsive wait
-            EndTick := A_TickCount + EditInterval.Value
-            while (A_TickCount < EndTick && IsAutomating) {
-                Sleep 10
-            }
-        }
-    }
-}
-
+CapsLock & z:: RunAutoClicker()
 CapsLock & x:: StopActions()
 CapsLock & c:: StartRecording()
 CapsLock & v:: PlayMacro()
