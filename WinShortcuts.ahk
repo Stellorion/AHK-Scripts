@@ -381,8 +381,25 @@ CapsLock & a::
 CapsLock & q:: {
     try {
         session := Media.GetCurrentSession()
-        session.UpdateTimelineProperties() ; <--- Fetch fresh data
+        
+        ; Check the current state (Status 4 means "Playing")
+        wasPlaying := (session.PlaybackStatus == 4)
+        
+        ; If it is playing, pause it to force the timeline sync
+        if (wasPlaying) {
+            session.Pause()
+            Sleep 50
+        }
+        
+        ; Fetch the newly synced data and make the jump
+        session.UpdateTimelineProperties()
         session.ChangePlaybackPosition(Max(0, session.Position - 5))
+        
+        ; Explicitly tell it to play ONLY if it was playing to begin with
+        if (wasPlaying) {
+            Sleep 50
+            session.Play()
+        }
     } 
     catch {
         ; Do nothing
@@ -393,8 +410,25 @@ CapsLock & q:: {
 CapsLock & e:: {
     try {
         session := Media.GetCurrentSession()
-        session.UpdateTimelineProperties() ; <--- Fetch fresh data
+        
+        ; Check the current state (Status 4 means "Playing")
+        wasPlaying := (session.PlaybackStatus == 4)
+        
+        ; If it is playing, pause it to force the timeline sync
+        if (wasPlaying) {
+            session.Pause()
+            Sleep 50
+        }
+        
+        ; Fetch the newly synced data and make the jump
+        session.UpdateTimelineProperties()
         session.ChangePlaybackPosition(Min(session.EndTime, session.Position + 5))
+        
+        ; Explicitly tell it to play ONLY if it was playing to begin with
+        if (wasPlaying) {
+            Sleep 50
+            session.Play()
+        }
     } 
     catch {
         ; Do nothing
@@ -405,7 +439,6 @@ CapsLock & e:: {
 CapsLock & r:: {
     try {
         session := Media.GetCurrentSession()
-        session.UpdateTimelineProperties() ; <--- Fetch fresh data
         session.ChangePlaybackPosition(session.StartTime)
     } 
     catch {
@@ -417,7 +450,6 @@ CapsLock & r:: {
 CapsLock & t:: {
     try {
         session := Media.GetCurrentSession()
-        session.UpdateTimelineProperties() ; <--- Fetch fresh data
         session.ChangePlaybackPosition(session.EndTime)
     } 
     catch {
