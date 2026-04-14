@@ -381,6 +381,7 @@ CapsLock & a::
 CapsLock & q:: {
     try {
         session := Media.GetCurrentSession()
+        session.UpdateTimelineProperties() ; <--- Fetch fresh data
         session.ChangePlaybackPosition(Max(0, session.Position - 5))
     } 
     catch {
@@ -392,6 +393,7 @@ CapsLock & q:: {
 CapsLock & e:: {
     try {
         session := Media.GetCurrentSession()
+        session.UpdateTimelineProperties() ; <--- Fetch fresh data
         session.ChangePlaybackPosition(Min(session.EndTime, session.Position + 5))
     } 
     catch {
@@ -400,9 +402,10 @@ CapsLock & e:: {
 }
 
 ; -- Jump To Start --
-CapsLock & t:: {
+CapsLock & r:: {
     try {
         session := Media.GetCurrentSession()
+        session.UpdateTimelineProperties() ; <--- Fetch fresh data
         session.ChangePlaybackPosition(session.StartTime)
     } 
     catch {
@@ -411,9 +414,10 @@ CapsLock & t:: {
 }
 
 ; -- Jump To End --
-CapsLock & r:: {
+CapsLock & t:: {
     try {
         session := Media.GetCurrentSession()
+        session.UpdateTimelineProperties() ; <--- Fetch fresh data
         session.ChangePlaybackPosition(session.EndTime)
     } 
     catch {
