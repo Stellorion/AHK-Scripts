@@ -35,7 +35,7 @@ RunAutoClicker(*) {
     ; Check if input is a mouse shorthand (m1, m2, m3)
     IsMouse := (RawKey ~= "i)^m[1-3]$")
     TargetKey := (RawKey = "m1") ? "LButton" : (RawKey = "m2") ? "RButton" : (RawKey = "m3") ? "MButton" : RawKey
-    SoundBeep 750, 100 
+    ToolTip("AC: On")
 
     while IsAutomating {
         Sleep -1 ; Prevents the script from freezing the CPU
@@ -123,7 +123,6 @@ StopActions(*) {
     global IsRecording := false, IsPlaying := false, IsAutomating := false
     SetTimer(ProcessMacro, 0) ; Kill playback timer
     ToolTip()
-    SoundBeep 500, 100 
 }
 
 PlayMacro() {
